@@ -8,6 +8,10 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
+const maxHistory = 10
+
+//TODO: change this "kolhoz" in future
+
 type Handler struct {
 	Bot     *tgbotapi.BotAPI
 	LLM     llm.LLM
@@ -57,6 +61,15 @@ func (h *Handler) Run() {
 			Role:    llm.RoleUser,
 			Content: userMsg,
 		})
+
+		if len(h.Memory[chatID]) > maxHistory+1 {
+			systemMsg := h.Memory[chatID][0]
+			slog.Info("Old messages removed",
+				"message", h.Memory[chatID][1],
+			)
+			recent := h.Memory[chatID][len(h.Memory[chatID])-maxHistory:]
+			h.Memory[chatID] = append([]llm.Message{systemMsg}, recent...)
+		}
 
 		answer, err := h.LLM.GenerateResponse(h.Context, h.Memory[chatID])
 		if err != nil {
