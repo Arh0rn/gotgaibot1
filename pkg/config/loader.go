@@ -13,9 +13,11 @@ const (
 )
 
 func LoadConfig() (*Config, error) {
-	err := godotenv.Load()
-	if err != nil {
-		return nil, fmt.Errorf("error loading .env file: %w", err)
+	if os.Getenv("RENDER") == "" {
+		err := godotenv.Load()
+		if err != nil {
+			return nil, fmt.Errorf("error loading .env file: %w", err)
+		}
 	}
 
 	config := &Config{}
@@ -25,7 +27,7 @@ func LoadConfig() (*Config, error) {
 		return nil, fmt.Errorf("config file %s does not exist", configPath)
 	}
 
-	err = cleanenv.ReadConfig(configPath, config)
+	err := cleanenv.ReadConfig(configPath, config)
 	if err != nil {
 		return nil, fmt.Errorf("error reading config file: %w", err)
 	}
